@@ -1,5 +1,5 @@
 pub fn raindrops(n: usize) -> String {
-    let mut s = "".to_string();
+    let mut s = String::new();
     if n % 3 == 0 {
         s.push_str("Pling");
     }
