@@ -9,7 +9,7 @@ pub fn raindrops(n: usize) -> String {
     if n % 7 == 0 {
         s.push_str("Plong");
     }
-    if s.chars().count() == 0 {
+    if s.is_empty() {
         return n.to_string();
     }
 
