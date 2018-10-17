@@ -18,16 +18,6 @@ pub fn find_saddle_points(input: &[Vec<u64>]) -> Vec<(usize, usize)> {
 
     // println!("min in column {:?}", min_cols);
 
-    // println!(
-    //     "enum {:?}",
-    //     input.iter().enumerate().map(|line| line
-    //         .1
-    //         .iter()
-    //         .enumerate()
-    //         .filter(|col| min_cols[col.0] == *col.1 && max_lines[line.0] == *col.1)
-    //         .map(move |col| (col.0, line.0)))
-    // );
-
     let mut sad: Vec<(usize, usize)> = Vec::new();
     for y in 0..input.len() {
         for (x, _v) in min_cols.iter().enumerate().take(input[0].len()) {
