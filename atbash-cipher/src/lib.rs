@@ -4,24 +4,18 @@ const ALPH: &str = "abcdefghijklmnopqrstuvwxyz";
 pub fn encode(plain: &str) -> String {
         plain.to_lowercase()
                 .chars()
-                .filter(|c| c.is_alphanumeric())
-                .filter_map(|c| {
-                        if c.is_numeric() {
-                                return Some(c);
-                        }
-                        match ALPH.find(c) {
-                                None => None,
-                                Some(idx) => ALPH.chars().rev().nth(idx),
-                        }
+                .filter(|c| c.is_ascii_alphanumeric())
+                .collect::<Vec<char>>()
+                .chunks(5)
+                .map(|w| {
+                        w.iter().filter_map(|c| match c {
+                                c if c.is_numeric() => Some(*c),
+                                _ => ALPH.chars().rev().nth(ALPH.find(*c).unwrap()),
+                        })
+                        .collect::<String>()
                 })
-                .enumerate()
-                .fold(String::from(""), |mut s, (i, c)| {
-                        if i != 0 && (i as i32) % 5 == 0 {
-                                s.push(' ');
-                        }
-                        s.push(c);
-                        s
-                })
+                .collect::<Vec<String>>()
+                .join(" ")
 }
 
 /// "Decipher" with the Atbash cipher.
