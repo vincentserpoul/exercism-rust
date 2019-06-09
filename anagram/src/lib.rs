@@ -1,51 +1,49 @@
 use std::collections::HashSet;
 
 pub fn anagrams_for<'a>(word: &str, possible_anagrams: &[&'a str]) -> HashSet<&'a str> {
-    let _w: Vec<char> = sort_string(word.to_lowercase().as_ref());
-
     // filters all anagrams according to letter
     possible_anagrams
         .iter()
-        .filter(|a| is_anagram(word, &_w, a))
+        .filter(|a| is_anagram(word, a))
         .cloned()
         .collect::<HashSet<&str>>()
 }
 
-fn is_anagram(word: &str, sorted_word: &[char], possible_anagram: &str) -> bool {
+fn is_anagram(word: &str, possible_anagram: &str) -> bool {
+    let word_sorted_chars = sort_string(word.to_lowercase().as_ref());
+
     // if words are not the same size
-    if possible_anagram.chars().count() != sorted_word.len() {
+    if possible_anagram.chars().count() != word_sorted_chars.len() {
         return false;
     }
-    let possible_anagram_lc = possible_anagram.to_lowercase();
+    let possible_anagram_low = possible_anagram.to_lowercase();
     // if words are the same
-    if possible_anagram_lc == word.to_lowercase() {
+    if possible_anagram_low == word.to_lowercase() {
         return false;
     }
-    let sw = sort_string(&possible_anagram_lc);
-    sw.iter()
+    sort_string(&possible_anagram_low)
+        .iter()
         .enumerate()
-        .find(|(i, c)| **c != sorted_word[*i])
+        .find(|(i, ch)| **ch != word_sorted_chars[*i])
         .is_none()
 }
 
 fn sort_string(s: &str) -> Vec<char> {
-    let mut c = s.chars().collect::<Vec<char>>();
-    c.sort();
-    c
+    let mut word_sorted_chars = s.chars().collect::<Vec<char>>();
+    word_sorted_chars.sort();
+    word_sorted_chars
 }
 
 #[test]
 fn test_is_anagram() {
     let dword = "adeipr";
-    let dw: Vec<char> = vec!['a', 'd', 'e', 'i', 'p', 'r'];
 
-    assert_eq!(is_anagram(dword, &dw, "d"), false);
-    assert_eq!(is_anagram(dword, &dw, "diaper"), true);
-    assert_eq!(is_anagram(dword, &dw, "Idaper"), true);
-    assert_eq!(is_anagram(dword, &dw, "adeipr"), false);
+    assert_eq!(is_anagram(dword, "d"), false);
+    assert_eq!(is_anagram(dword, "diaper"), true);
+    assert_eq!(is_anagram(dword, "Idaper"), true);
+    assert_eq!(is_anagram(dword, "adeipr"), false);
 
     let oword = "Orchestra";
-    let ow: Vec<char> = vec!['a', 'c', 'e', 'h', 'o', 'r', 'r', 's', 't'];
 
-    assert_eq!(is_anagram(oword, &ow, "Carthorse"), true, "is orchestra");
+    assert_eq!(is_anagram(oword, "Carthorse"), true, "is orchestra");
 }
