@@ -4,7 +4,7 @@ pub fn anagrams_for<'a>(word: &str, possible_anagrams: &[&'a str]) -> HashSet<&'
     // filters all anagrams according to letter
     possible_anagrams
         .iter()
-        .filter(|a| is_anagram(word, a))
+        .filter(|possible_anagram| is_anagram(word, possible_anagram))
         .cloned()
         .collect::<HashSet<&str>>()
 }
@@ -24,7 +24,7 @@ fn is_anagram(word: &str, possible_anagram: &str) -> bool {
     sort_string(&possible_anagram_low)
         .iter()
         .enumerate()
-        .find(|(i, ch)| **ch != word_sorted_chars[*i])
+        .find(|(idx, ch)| **ch != word_sorted_chars[*idx])
         .is_none()
 }
 
@@ -36,14 +36,14 @@ fn sort_string(s: &str) -> Vec<char> {
 
 #[test]
 fn test_is_anagram() {
-    let dword = "adeipr";
+    let word_test_1 = "adeipr";
 
-    assert_eq!(is_anagram(dword, "d"), false);
-    assert_eq!(is_anagram(dword, "diaper"), true);
-    assert_eq!(is_anagram(dword, "Idaper"), true);
-    assert_eq!(is_anagram(dword, "adeipr"), false);
+    assert_eq!(is_anagram(word_test_1, "d"), false);
+    assert_eq!(is_anagram(word_test_1, "diaper"), true);
+    assert_eq!(is_anagram(word_test_1, "Idaper"), true);
+    assert_eq!(is_anagram(word_test_1, "adeipr"), false);
 
-    let oword = "Orchestra";
+    let word_test_2 = "Orchestra";
 
-    assert_eq!(is_anagram(oword, "Carthorse"), true, "is orchestra");
+    assert_eq!(is_anagram(word_test_2, "Carthorse"), true, "is orchestra");
 }
