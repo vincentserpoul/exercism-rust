@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 #[derive(Debug, PartialEq)]
 pub enum Comparison {
     Equal,
@@ -7,27 +9,34 @@ pub enum Comparison {
 }
 
 pub fn sublist<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
-    if first_list == second_list {
-        return Comparison::Equal;
+    match first_list.len().cmp(&second_list.len()) {
+        Ordering::Less => {
+            if is_sublist(first_list, second_list) {
+                Comparison::Sublist
+            } else {
+                Comparison::Unequal
+            }
+        }
+        Ordering::Greater => {
+            if is_sublist(second_list, first_list) {
+                Comparison::Superlist
+            } else {
+                Comparison::Unequal
+            }
+        }
+        Ordering::Equal => {
+            if first_list == second_list {
+                Comparison::Equal
+            } else {
+                Comparison::Unequal
+            }
+        }
     }
-
-    if is_sublist(first_list, second_list) {
-        return Comparison::Sublist;
-    }
-
-    if is_sublist(second_list, first_list) {
-        return Comparison::Superlist;
-    }
-
-    Comparison::Unequal
 }
 
 fn is_sublist<T: PartialEq>(first_list: &[T], second_list: &[T]) -> bool {
-    if first_list.is_empty() {
-        return true;
-    }
-
-    second_list
-        .windows(first_list.len())
-        .any(|shorter_second_list| first_list == shorter_second_list)
+    first_list.is_empty()
+        || second_list
+            .windows(first_list.len())
+            .any(|shorter_second_list| first_list == shorter_second_list)
 }
