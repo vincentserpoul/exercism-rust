@@ -1,3 +1,4 @@
+use std::cmp;
 use std::fmt;
 use std::str::FromStr;
 
@@ -113,21 +114,8 @@ impl MinefieldMatrix {
 
     pub fn update_surrounding_squares(&mut self, line: usize, col: usize) {
         self.lines[line].squares[col] = Square::Mine;
-        let lines_lower_bound = if line == 0 { 0 } else { line - 1 };
-        let line_upper_bound = if line == (self.lines.len() - 1) {
-            self.lines.len() - 1
-        } else {
-            line + 1
-        };
-
-        let cols_lower_bound = if col == 0 { 0 } else { col - 1 };
-        let cols_upper_bound = if col == (self.lines[0].squares.len() - 1) {
-            self.lines[0].squares.len() - 1
-        } else {
-            col + 1
-        };
-        for l in lines_lower_bound..=line_upper_bound {
-            for c in cols_lower_bound..=cols_upper_bound {
+        for l in line.saturating_sub(1)..=cmp::min(line + 1, self.lines.len() - 1) {
+            for c in col.saturating_sub(1)..=cmp::min(col + 1, &self.lines[l].squares.len() - 1) {
                 self.lines[l].squares[c] = match &self.lines[l].squares[c] {
                     Square::Mine => Square::Mine,
                     Square::NotYetSet => Square::CountMine(1),
