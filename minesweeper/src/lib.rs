@@ -20,13 +20,8 @@ impl FromStr for Square {
         match s {
             "*" => Ok(Square::Mine),
             " " => Ok(Square::NotYetSet),
-            i => {
-                if let Ok(j) = i.parse::<u32>() {
-                    Ok(Square::CountMine(j))
-                } else {
-                    Err(())
-                }
-            }
+            i if i.parse::<u32>().is_ok() => Ok(Square::CountMine(i.parse::<u32>().unwrap())),
+            _ => Err(()),
         }
     }
 }
@@ -65,15 +60,15 @@ impl FromStr for Line {
     type Err = ();
     fn from_str(s: &str) -> Result<Self, ()> {
         let squares = s
-            .chars()
-            .flat_map(|sq| Square::from_str(sq.to_string().as_str()))
+            .split("")
+            .flat_map(|sq| Square::from_str(sq))
             .collect::<Vec<Square>>();
         Ok(Self { squares })
     }
 }
 
 impl Line {
-    pub fn new(col_count: usize) -> Self {
+    fn new(col_count: usize) -> Self {
         Self {
             squares: vec![Square::NotYetSet; col_count],
         }
@@ -91,19 +86,16 @@ impl MinefieldMatrix {
         }
     }
 
-    pub fn new_from_str_minefield(minefield: &[&str]) -> Self {
-        // create new minefield
-        let line_count: usize = minefield.len();
-        let col_count: usize = if line_count > 0 {
-            minefield[0].chars().count()
-        } else {
-            0
+    fn new_from_str_minefield(minefield: &[&str]) -> Self {
+        let (line_count, col_count) = match minefield.len() {
+            0 => (0, 0),
+            _ => (minefield.len(), minefield[0].chars().count()),
         };
         let mut mfm = Self::new(line_count, col_count);
 
         // update it with the supplied minefield
         minefield.iter().enumerate().for_each(|(line_num, line)| {
-            line.chars().enumerate().for_each(|(col_num, sq)| {
+            line.char_indices().for_each(|(col_num, sq)| {
                 if Square::from_str(sq.to_string().as_str()) == Ok(Square::Mine) {
                     mfm.update_surrounding_squares(line_num, col_num);
                 }
@@ -112,7 +104,7 @@ impl MinefieldMatrix {
         mfm
     }
 
-    pub fn update_surrounding_squares(&mut self, line: usize, col: usize) {
+    fn update_surrounding_squares(&mut self, line: usize, col: usize) {
         self.lines[line].squares[col] = Square::Mine;
         for l in line.saturating_sub(1)..=cmp::min(line + 1, self.lines.len() - 1) {
             for c in col.saturating_sub(1)..=cmp::min(col + 1, &self.lines[l].squares.len() - 1) {
