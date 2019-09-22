@@ -1,10 +1,10 @@
+use std::char;
 use std::cmp;
-use std::fmt;
-use std::str::FromStr;
+use std::convert::TryFrom;
 
 pub fn annotate(minefield: &[&str]) -> Vec<String> {
     let mfm = MinefieldMatrix::new_from_str_minefield(minefield);
-    mfm.lines.iter().map(|l| format!("{}", l)).collect()
+    mfm.into()
 }
 
 #[derive(Clone, PartialEq)]
@@ -14,24 +14,27 @@ enum Square {
     NotYetSet,
 }
 
-impl FromStr for Square {
-    type Err = ();
-    fn from_str(s: &str) -> Result<Self, ()> {
-        match s {
-            "*" => Ok(Square::Mine),
-            " " => Ok(Square::NotYetSet),
-            i if i.parse::<u32>().is_ok() => Ok(Square::CountMine(i.parse::<u32>().unwrap())),
-            _ => Err(()),
+#[derive(PartialEq)]
+struct MineError;
+
+impl TryFrom<char> for Square {
+    type Error = MineError;
+
+    fn try_from(value: char) -> Result<Self, Self::Error> {
+        match value {
+            '*' => Ok(Square::Mine),
+            ' ' => Ok(Square::NotYetSet),
+            _ => value.to_digit(10).ok_or(MineError).map(Square::CountMine),
         }
     }
 }
 
-impl fmt::Display for Square {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Square::Mine => write!(f, "*"),
-            Square::CountMine(i) => write!(f, "{}", i),
-            Square::NotYetSet => write!(f, " "),
+impl From<Square> for char {
+    fn from(s: Square) -> char {
+        match s {
+            Square::Mine => '*',
+            Square::NotYetSet => ' ',
+            Square::CountMine(i) => char::from_digit(i, 10).unwrap(),
         }
     }
 }
@@ -41,37 +44,29 @@ struct Line {
     squares: Vec<Square>,
 }
 
-impl fmt::Display for Line {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            &self
-                .squares
-                .iter()
-                .map(std::string::ToString::to_string)
-                .collect::<Vec<String>>()
-                .concat()
-        )
-    }
-}
-
-impl FromStr for Line {
-    type Err = ();
-    fn from_str(s: &str) -> Result<Self, ()> {
-        let squares = s
-            .split("")
-            .flat_map(|sq| Square::from_str(sq))
-            .collect::<Vec<Square>>();
-        Ok(Self { squares })
-    }
-}
-
 impl Line {
     fn new(col_count: usize) -> Self {
         Self {
             squares: vec![Square::NotYetSet; col_count],
         }
+    }
+}
+
+impl TryFrom<String> for Line {
+    type Error = MineError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value
+            .chars()
+            .map(Square::try_from)
+            .collect::<Result<Vec<Square>, MineError>>()
+            .map(|squares| Line { squares })
+    }
+}
+
+impl From<Line> for String {
+    fn from(l: Line) -> String {
+        l.squares.into_iter().map(|sq| char::from(sq)).collect()
     }
 }
 
@@ -96,7 +91,7 @@ impl MinefieldMatrix {
         // update it with the supplied minefield
         minefield.iter().enumerate().for_each(|(line_num, line)| {
             line.char_indices().for_each(|(col_num, sq)| {
-                if Square::from_str(sq.to_string().as_str()) == Ok(Square::Mine) {
+                if Square::try_from(sq) == Ok(Square::Mine) {
                     mfm.update_surrounding_squares(line_num, col_num);
                 }
             })
@@ -115,5 +110,11 @@ impl MinefieldMatrix {
                 }
             }
         }
+    }
+}
+
+impl From<MinefieldMatrix> for Vec<String> {
+    fn from(mm: MinefieldMatrix) -> Vec<String> {
+        mm.lines.into_iter().map(|l| String::from(l)).collect()
     }
 }
