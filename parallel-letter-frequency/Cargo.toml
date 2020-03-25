@@ -2,9 +2,6 @@
 edition = "2018"
 name = "parallel-letter-frequency"
 version = "0.0.0"
-<<<<<<< HEAD
-=======
 
 [dependencies]
 rayon = "1.2.0"
->>>>>>> 9cae8ad76f68a43730c1e48a0bfa775f4ea06bd1
